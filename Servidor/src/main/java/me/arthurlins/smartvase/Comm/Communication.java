@@ -31,7 +31,7 @@ public class Communication {
         }
         while (isBootstraping()){
             String line;
-            this.getArduino().serialWrite('0');
+            this.getArduino().serialWrite(Command.GET_HANDSHAKE.getValue());
             line = this.getArduino().serialRead().replace("\n","");
             if (line.equals("hi")) {
                 this.setBootstraping(false);

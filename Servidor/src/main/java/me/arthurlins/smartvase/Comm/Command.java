@@ -1,7 +1,7 @@
 package me.arthurlins.smartvase.Comm;
 
 public enum Command {
-    //GET_HANDSHAKE('0'),
+    GET_HANDSHAKE('h'),
     GET_UMIDADE ('1'),
     GET_HORA('2'),
     SET_HORA('4'),
