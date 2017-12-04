@@ -3,7 +3,7 @@
 */
 
 #include "virtuabotixRTC.h"
-
+#include "EEPROM.h"
 //IRRIGADOR
 #define RELE_PIN 4
 //SENSOR DE UMIDADE
@@ -11,7 +11,6 @@
 
 //Variaves globais
 char COMMAND = 0;
-bool regado = false;
 String agenda = "";
 int qtdAgua;
 
@@ -105,7 +104,7 @@ int getUmidade(){
 
 //Função que formata é retorna a hora do RTC
 String getHora(){
-  clook.updateTime();
+  //clook.updateTime();
   String data = "";
   data += clook.dayofweek;
   data += ";";
@@ -303,7 +302,7 @@ void actionsListner(){
     COMMAND = Serial.read();
     
     //Handshake
-    if(COMMAND == '0'){ 
+    if(COMMAND == 'h'){ 
       hi();
     }
 
@@ -383,45 +382,41 @@ void actionsListner(){
   serialFlush();
 }
 
+//Variavel de proteção;
+bool regado = false;
+
 //Metodo que verifica se é hora de irrigar
 void agendaListner(){
-  clook.updateTime();
   //Verifica se agendamento esta desativado.
   if (agenda == "0"){
     return;  
   }
-  //Condição auxiliar que faz a função irrigar seja chamada apenas uma unica vez.
-  if (agenda.substring(3, 5).toInt() != clook.minutes){
-    regado = false; 
-    return;
-  }
+  
   //Verifica se o horario corresponde ao agendado.
   if (
     agenda.substring(1, 3).toInt() == clook.hours
     && agenda.substring(3, 5).toInt() == clook.minutes){
 
     //Verifica se o dia da semana esta agendado.
-    if ((agenda.substring(5, 6).toInt() == 1 && clook.dayofweek == 1) 
+    if (   (agenda.substring(5, 6).toInt() == 1 && clook.dayofweek == 1) 
         || (agenda.substring(6, 7).toInt() == 1 && clook.dayofweek == 2)
         || (agenda.substring(7, 8).toInt() == 1 && clook.dayofweek == 3)
         || (agenda.substring(8, 9).toInt() == 1 && clook.dayofweek == 4)
         || (agenda.substring(9, 10).toInt() == 1 && clook.dayofweek == 5)
         || (agenda.substring(10, 11).toInt() == 1 && clook.dayofweek == 6)
-        || (agenda.substring(11, 12).toInt() == 1 && clook.dayofweek == 7)                                        
+        || (agenda.substring(11, 12).toInt() == 1 && clook.dayofweek == 7)
+        && clook.seconds == 0                                     
        ){
         //Caso a opção de irrigar APENAS se o solo não estiver úmido esteja habilitado
         //O programa ira conferir a úmidade do solo.   
-        if (agenda.substring(12, 13).toInt() == 1){
+        if (agenda.substring(12, 13).toInt() == 0){
             //Verifica se o solo esta úmido;
-            if (analogRead(UMIDADE_PIN) < 800){
+            if (analogRead(UMIDADE_PIN) <= 800){
               return;
             }
           }
-          //Se o comando não foi executado
-          if (!regado){
-            regado = true;
-            irrigar(qtdAgua);
-          }
+          regado = true;
+          irrigar(qtdAgua);
           return;
       }
       return;
@@ -456,8 +451,16 @@ void setup()
 
 void loop() 
 {
+  clook.updateTime();
   actionsListner();
-  agendaListner();
+  //Condição auxiliar que faz a função irrigar seja chamada apenas uma unica vez.
+  if (agenda.substring(3, 5).toInt() != clook.minutes && regado){
+    regado = false; 
+    return;
+  }
+  if (!regado){
+    agendaListner();
+  }
 }
 
 
