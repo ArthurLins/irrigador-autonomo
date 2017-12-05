@@ -214,7 +214,9 @@ void irrigar(int ml){
   digitalWrite(RELE_PIN, HIGH);
   delay(tempo);
   digitalWrite(RELE_PIN, LOW);
+  return;
 }
+
 
 /*
 Metodo para salvar os dados de agendamento na memoria.
