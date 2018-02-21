@@ -1,5 +1,5 @@
 /*
-  Desenvolvido por: Arthur Interaminense
+  Desenvolvido por: Arthur L
 */
 
 #include "virtuabotixRTC.h"
